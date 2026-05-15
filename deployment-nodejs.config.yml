@@ -29,7 +29,7 @@ application:
     APP_ENV: production
     # Node.js specific
     NODE_ENV: production
-    PORT: "3000"
+    PORT: "3001"
 
 dependencies:
   # Database Dependencies
@@ -70,7 +70,7 @@ dependencies:
   nodejs:
     enabled: true
     config:
-      version: "18"
+      version: "20"
       package_manager: "npm"
       # Build command to compile TypeScript (if applicable)
       build_command: "npm run build"
@@ -80,7 +80,8 @@ dependencies:
     config:
       app_name: "uptime-kuma-test"
       instances: 1
-      exec_mode: "cluster"
+      exec_mode: "fork"
+      script: "server/server.js"
   
   git:
     enabled: true
@@ -94,7 +95,7 @@ dependencies:
         - "22"    # SSH
         - "80"    # HTTP
         - "443"   # HTTPS
-        - "3000"  # Node.js
+        - "3001"  # Node.js
       deny_all_other: true
 
 deployment:
@@ -133,8 +134,8 @@ deployment:
         restart_services: true
       # Custom commands run on the instance after file deployment
       post_install_commands:
-        - "npm install --production"
-        - "npm run build"
+        - "npm run setup"
+        - "pm2 start server/server.js --name uptime-kuma-test || pm2 restart uptime-kuma-test"
     
     verification:
       enabled: true
@@ -143,7 +144,7 @@ deployment:
       endpoints_to_test:
         - "/"
         - "/api/health"
-      port: 3000  # Node.js applications run on port 3000
+      port: 3001  # Node.js applications run on port 3001
 
 github_actions:
   triggers:
@@ -170,7 +171,7 @@ monitoring:
   health_check:
     endpoint: "/"
     expected_content: "Node.js"
-    port: 3000  # Node.js applications run on port 3000
+    port: 3001  # Node.js applications run on port 3001
     max_attempts: 15
     wait_between_attempts: 20
     initial_wait: 60
